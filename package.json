@@ -10,29 +10,49 @@
   "scripts": {
     "start": "electron .",
     "web": "node serve.mjs",
-    "dist": "electron-builder --win portable"
-  },
-  "dependencies": {
-    "three": "0.160.0"
+    "dist": "node tools/build-html.mjs && node tools/build-exe.mjs",
+    "dist:html": "node tools/build-html.mjs",
+    "dist:electron": "electron-builder --win nsis portable",
+    "icon": "electron tools/make-icon.cjs",
+    "vendor": "node tools/vendor-three.mjs"
   },
   "devDependencies": {
     "electron": "33.2.1",
-    "electron-builder": "25.1.8"
+    "electron-builder": "25.1.8",
+    "esbuild": "^0.24.0",
+    "three": "0.160.0"
   },
   "build": {
     "appId": "com.mirage.duskwalker",
     "productName": "Duskwalker",
+    "copyright": "Copyright © 2026 Mirage",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
     "files": [
       "index.html",
       "src/**",
       "assets/**",
+      "vendor/**",
       "electron/**",
-      "node_modules/three/build/**",
-      "node_modules/three/examples/jsm/**"
+      "!src/fx.js"
     ],
     "win": {
-      "target": "portable"
-    }
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "artifactName": "Duskwalker-Setup-${version}.${ext}",
+      "shortcutName": "Duskwalker",
+      "oneClick": true,
+      "perMachine": false
+    },
+    "portable": {
+      "artifactName": "Duskwalker-${version}-Portable.${ext}"
+    },
+    "electronLanguages": [
+      "en-US"
+    ]
   },
   "allowScripts": {
     "electron@33.2.1": true

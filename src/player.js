@@ -292,6 +292,9 @@ export class Player {
     this.root.updateMatrixWorld(true);
     this.neckAnchor.getWorldPosition(P[0]);
     Q[0].copy(P[0]);
+    if (P[0].distanceTo(P[1]) > 1.5) { // teleported: re-hang the scarf instead of stretching it
+      for (let i = 1; i < this.scarfN; i++) { P[i].copy(P[0]).x -= i * 0.15 * this.facing; Q[i].copy(P[i]); }
+    }
     const step = Math.min(dt, 1 / 30);
     const wind = -this.vx * 0.6 - 2.5;
     for (let i = 1; i < n; i++) {

@@ -12,8 +12,34 @@ WebGL pinned to **ANGLE → Direct3D 11**, so every frame is rendered through Di
 npm install            # first time only
 npm start              # Windows desktop app (DirectX 11)
 npm run web            # or play in a browser at http://localhost:8080
-npm run dist           # build a portable Duskwalker .exe into dist/
 ```
+
+## Sharing it with friends
+
+```bash
+npm run dist           # dist/Duskwalker.exe + dist/Duskwalker.html + dist/Duskwalker-itch.zip
+npm run dist:electron  # optional: 80 MB Electron installer and portable exe
+```
+
+| File | Size | Best for |
+| --- | --- | --- |
+| `Duskwalker.exe` | ~0.75 MB | **Windows.** One self-contained file: double-click to play. It opens the game in its own Microsoft Edge app window (Edge ships with Windows 10/11) with WebGL pinned to Direct3D 11. |
+| `Duskwalker.html` | ~0.7 MB | **Any computer.** The whole game in one file: double-click to play in the browser (Edge, Chrome, Firefox, Safari). |
+| `Duskwalker-itch.zip` | ~0.25 MB | Upload to itch.io as an HTML game so friends can play from a link. |
+| Electron builds | ~80 MB | Only if a PC has no Edge; they carry their own browser engine. |
+
+`Duskwalker.exe` is built with the C# compiler that comes with Windows (no SDK needed); its source is
+`launcher/Duskwalker.cs`. It is not code-signed, so Windows SmartScreen may show "Windows protected
+your PC" the first time; friends click **More info → Run anyway**.
+
+Bump `version` in `package.json` before each Electron release so the file names change.
+
+If `npm run dist:electron` fails with "Cannot create symbolic link" while unpacking `winCodeSign`, either
+enable Windows Developer Mode once or unpack that archive into
+`%LOCALAPPDATA%\electron-builder\Cache\winCodeSign\winCodeSign-2.6.0` with its `darwin` folder excluded.
+
+three.js is vendored in `vendor/three` (only the parts the game uses). After upgrading the `three`
+package run `npm run vendor`.
 
 In the desktop app: **F11** / **Alt+Enter** toggles fullscreen, **F12** opens dev tools.
 
