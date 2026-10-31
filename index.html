@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:">
+<title>Duskwalker</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./node_modules/three/build/three.module.js",
+    "three/addons/": "./node_modules/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root {
+    --ink: #f6e7c8;
+    --ember: #ffb35c;
+    --blood: #e0443a;
+    --shade: rgba(10, 6, 20, 0.72);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0614; color: var(--ink);
+    font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; user-select: none; }
+  canvas { display: block; }
+
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+  #hud .top { position: absolute; left: 16px; right: 16px; top: 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .health { display: flex; gap: 4px; padding: 6px 8px; background: var(--shade); border: 1px solid rgba(255,179,92,.35); border-radius: 4px; }
+  .health i { width: 14px; height: 22px; border-radius: 2px; background: linear-gradient(#ff7a5c, #a3201a); box-shadow: 0 0 6px rgba(255,90,60,.6); transition: opacity .2s, transform .2s; }
+  .health i.off { opacity: .15; box-shadow: none; transform: scaleY(.6); }
+  .score { font-size: 22px; letter-spacing: 2px; text-shadow: 0 2px 6px #000; text-align: right; }
+  .score small { display: block; font-size: 12px; opacity: .7; letter-spacing: 3px; }
+  .progress { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); width: min(40vw, 360px); height: 6px; background: var(--shade); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,179,92,.25); }
+  .progress b { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #ffb35c, #ff6a3d); }
+
+  #zone { position: absolute; left: 0; right: 0; top: 22%; text-align: center; font-size: clamp(22px, 4vw, 44px); letter-spacing: .35em; text-transform: uppercase;
+    text-shadow: 0 0 18px rgba(255,140,60,.8), 0 3px 8px #000; opacity: 0; transition: opacity 1.2s; }
+  #zone.show { opacity: 1; }
+
+  #boss { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); width: min(70vw, 560px); display: none; text-align: center; }
+  #boss .name { font-size: 14px; letter-spacing: .4em; margin-bottom: 6px; text-shadow: 0 2px 6px #000; }
+  #boss .bar { height: 10px; background: var(--shade); border: 1px solid rgba(255,120,80,.5); border-radius: 5px; overflow: hidden; }
+  #boss .bar b { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #7b1a3a, #e0443a, #ffb35c); transition: width .2s; }
+
+  .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 16px;
+    background: radial-gradient(ellipse at center, rgba(10,6,20,.25), rgba(10,6,20,.8)); transition: opacity .6s; }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+  .screen h1 { margin: 0; font-size: clamp(42px, 9vw, 110px); letter-spacing: .18em; font-weight: normal;
+    background: linear-gradient(#ffe0a8, #ff8a3d 60%, #a33a1a); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 18px rgba(255,110,40,.45)); }
+  .screen h2 { margin: 6px 0 28px; font-weight: normal; letter-spacing: .5em; font-size: clamp(12px, 1.6vw, 16px); opacity: .8; }
+  .screen .blink { font-size: 18px; letter-spacing: .3em; animation: blink 1.6s infinite; margin-top: 18px; }
+  .screen .keys { display: grid; grid-template-columns: auto auto; gap: 6px 18px; font-size: 14px; opacity: .85; margin-top: 18px; text-align: left; }
+  .screen .keys kbd { font-family: inherit; padding: 1px 7px; border: 1px solid rgba(255,220,170,.4); border-radius: 3px; background: rgba(0,0,0,.35); }
+  .screen .stat { font-size: 20px; letter-spacing: .2em; margin: 4px 0; }
+  @keyframes blink { 50% { opacity: .25; } }
+
+  #flash { position: fixed; inset: 0; background: #ff2a1a; opacity: 0; pointer-events: none; transition: opacity .25s; mix-blend-mode: screen; }
+
+  #intro { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; transition: opacity 1s; overflow: hidden; }
+  #intro.hidden { opacity: 0; pointer-events: none; }
+  #intro .copper { position: absolute; left: 0; right: 0; height: 18px; filter: blur(.4px); }
+  #intro .logo { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+  #intro img { max-width: min(70vw, 720px); max-height: 40vh; image-rendering: pixelated; display: none; }
+  #intro .word { font-family: Impact, "Arial Black", sans-serif; font-size: clamp(64px, 14vw, 180px); letter-spacing: .12em; line-height: 1;
+    background: linear-gradient(#ffffff 0%, #9fd8ff 30%, #1d4fa8 50%, #ffd59a 52%, #ff7a2a 75%, #fff2c4 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 2px #fff) drop-shadow(4px 6px 0 #10082a); }
+  #intro .presents { margin-top: 18px; letter-spacing: .8em; font-size: 16px; color: #cfe6ff; opacity: 0; transition: opacity 1s; }
+  #intro .presents.on { opacity: .9; }
+  #intro .skip { position: absolute; bottom: 18px; font-size: 11px; letter-spacing: .3em; opacity: .4; color: #fff; }
+  .credit { position: absolute; bottom: 14px; left: 0; right: 0; font-size: 12px; letter-spacing: .4em; opacity: .55; }
+  #help { position: fixed; right: 12px; bottom: 10px; font-size: 11px; opacity: .45; letter-spacing: .1em; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="top">
+    <div class="health" id="health"></div>
+    <div class="score"><span id="score">0</span><small id="timer">0:00</small></div>
+  </div>
+  <div class="progress"><b id="progress"></b></div>
+  <div id="zone"></div>
+  <div id="boss"><div class="name">THE BRAMBLE TITAN</div><div class="bar"><b id="bossbar"></b></div></div>
+</div>
+<div id="flash"></div>
+
+<div id="intro">
+  <div class="logo"><img id="mirageImg" alt="Mirage"><div class="word" id="mirageWord">MIRAGE</div><div class="presents" id="presents">PRESENTS</div></div>
+  <div class="skip">PRESS ANY KEY</div>
+</div>
+
+<div class="screen" id="title">
+  <h1>DUSKWALKER</h1>
+  <h2>A JOURNEY ACROSS THE AMBER PLAINS</h2>
+  <div class="keys">
+    <span><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd></span><span>Walk</span>
+    <span><kbd>↑</kbd> / <kbd>W</kbd> / <kbd>Space</kbd></span><span>Jump</span>
+    <span><kbd>↓</kbd> / <kbd>S</kbd></span><span>Crouch</span>
+    <span><kbd>J</kbd> / <kbd>X</kbd> / <kbd>Ctrl</kbd></span><span>Strike</span>
+    <span><kbd>P</kbd> &nbsp; <kbd>M</kbd> &nbsp; <kbd>B</kbd></span><span>Pause · Music · Bloom</span>
+  </div>
+  <div class="blink">PRESS ENTER OR CLICK TO BEGIN</div>
+  <div class="credit">A MIRAGE PRODUCTION</div>
+</div>
+
+<div class="screen hidden" id="over">
+  <h1 id="overTitle">FALLEN</h1>
+  <h2 id="overSub">THE DUSK CLAIMS ANOTHER WANDERER</h2>
+  <div class="stat" id="overScore"></div>
+  <div class="stat" id="overTime"></div>
+  <div class="blink">PRESS ENTER OR CLICK TO TRY AGAIN</div>
+</div>
+
+<div class="screen hidden" id="paused"><h1 style="font-size:64px">PAUSED</h1><div class="blink">PRESS P TO CONTINUE</div></div>
+<div id="help">gamepad supported</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

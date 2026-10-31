@@ -1,0 +1,40 @@
+{
+  "name": "duskwalker",
+  "productName": "Duskwalker",
+  "version": "1.0.0",
+  "description": "Duskwalker - a Mirage production. Parallax side-scrolling action in 3D.",
+  "author": "Mirage",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "web": "node serve.mjs",
+    "dist": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.mirage.duskwalker",
+    "productName": "Duskwalker",
+    "files": [
+      "index.html",
+      "src/**",
+      "assets/**",
+      "electron/**",
+      "node_modules/three/build/**",
+      "node_modules/three/examples/jsm/**"
+    ],
+    "win": {
+      "target": "portable"
+    }
+  },
+  "allowScripts": {
+    "electron@33.2.1": true
+  }
+}
