@@ -6,6 +6,9 @@ giant trees, through the Whispering Grove and across the Sunken Causeway to face
 Built with HTML, CSS and JavaScript (three.js). On Windows the desktop build runs in Electron with
 WebGL pinned to **ANGLE → Direct3D 11**, so every frame is rendered through DirectX.
 
+**Play in your browser:** https://erikvanberkel.github.io/duskwalker/ (rebuilt from `master` on
+every push by `.github/workflows/pages.yml`).
+
 ## Run
 
 ```bash
