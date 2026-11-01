@@ -14,7 +14,13 @@
     "dist:html": "node tools/build-html.mjs",
     "dist:electron": "electron-builder --win nsis portable",
     "icon": "electron tools/make-icon.cjs",
-    "vendor": "node tools/vendor-three.mjs"
+    "vendor": "node tools/vendor-three.mjs",
+    "dist:amiga": "npm run amiga:bake && npm run amiga:assets && npm run amiga:build",
+    "amiga:toolchain": "node tools/amiga/get-toolchain.mjs",
+    "amiga:bake": "electron tools/amiga/bake/main.cjs",
+    "amiga:assets": "node --no-warnings tools/amiga/assets.mjs",
+    "amiga:build": "node tools/amiga/build.mjs",
+    "amiga:run": "node tools/amiga/run.mjs"
   },
   "devDependencies": {
     "electron": "33.2.1",
